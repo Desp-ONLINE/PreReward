@@ -30,6 +30,9 @@ public class ReservationCommand implements CommandExecutor {
             case "사전예약":
                 giveReward(player);
                 return true;
+            case "후원복구":
+
+                return true;
             default:
                 player.sendMessage("§7 > /보상수령 사전예약 - 사전예약 보상을 수령합니다.");
         }
