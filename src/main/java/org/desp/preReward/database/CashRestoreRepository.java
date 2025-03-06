@@ -2,22 +2,16 @@ package org.desp.preReward.database;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
 import org.bson.Document;
-import org.desp.preReward.dto.PlayerDto;
+import org.desp.preReward.dto.CashRestoreDto;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.desp.preReward.utils.RewardUtils.getCurrentDate;
+import java.util.*;
 
 public class CashRestoreRepository {
 
     private static CashRestoreRepository instance;
     private final MongoCollection<Document> playerList;
-    private final Map<String, PlayerDto> reservationData = new HashMap<>();
+    private final Map<String, CashRestoreDto> cashRestoreData = new HashMap<>();
 
     public CashRestoreRepository() {
         DatabaseRegister database = new DatabaseRegister();
@@ -35,34 +29,37 @@ public class CashRestoreRepository {
     public void loadCashRestoreData() {
         FindIterable<Document> documents = playerList.find();
         for (Document document : documents) {
-            List<Document> cashRestoreDocument = (List<Document>) document.get("CashRestore");
-            for (Document res : cashRestoreDocument) {
-                String username = res.getString("username");
-                String discord_id = res.getString("discord_id");
-                String received = res.getString("received");
+                String username = "";
+                Integer amount = 0;
+                Set<String> keySet = document.keySet();
+                for (String s : keySet) {
+                    if(!(s.equalsIgnoreCase("_id") || s.equalsIgnoreCase("receivedMonth"))) {
+                        username = s;
+                        amount = document.getInteger(s);
+                    }
+                }
+                ArrayList<String> receivedMonths = new ArrayList<>();
+                List<Integer> receivedMonth = document.getList("receivedMonth", Integer.class);
+                String discord_id = document.getString("discord_id");
+                String received = document.getString("received");
 
-                PlayerDto playerData = PlayerDto.builder()
-                        .userName(username)
-                        .discord_id(discord_id)
-                        .received(received)
-                        .build();
-                reservationData.put(username, playerData);
-            }
+            CashRestoreDto cashRestoreDto = CashRestoreDto.builder().userName(username).amount(amount).receivedMonths(receivedMonth).build();
+            cashRestoreData.put(username, cashRestoreDto);
         }
     }
 
-    public void updateReservationData(PlayerDto playerData) {
-        playerList.updateOne(
-                Filters.elemMatch("reservation", Filters.eq("username", playerData.getUserName())),
-                Updates.set("reservation.$.received", getCurrentDate())
-        );
+//    public void updateCashRestoreData(CashRestoreDto cashRestoreDto) {
+//        playerList.updateOne(
+//                Filters.elemMatch("reservation", Filters.eq("username", playerData.getUserName())),
+//                Updates.set("reservation.$.received", getCurrentDate())
+//        );
+//
+//        if (cashRestoreData.containsKey(playerData.getUserName())) {
+//            cashRestoreData.get(playerData.getUserName()).setReceived(getCurrentDate());
+//        }
+//    }
 
-        if (reservationData.containsKey(playerData.getUserName())) {
-            reservationData.get(playerData.getUserName()).setReceived(getCurrentDate());
-        }
-    }
-
-    public Map<String, PlayerDto> getAllReservations() {
-        return reservationData;
+    public Map<String, CashRestoreDto> getCashCache() {
+        return cashRestoreData;
     }
 }

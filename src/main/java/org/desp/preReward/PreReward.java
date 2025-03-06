@@ -2,7 +2,7 @@ package org.desp.preReward;
 
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.desp.preReward.command.ReservationCommand;
+import org.desp.preReward.command.PreRewardCommand;
 import org.desp.preReward.database.ReservationRepository;
 
 public final class PreReward extends JavaPlugin {
@@ -14,7 +14,7 @@ public final class PreReward extends JavaPlugin {
     public void onEnable() {
         instance = this;
         register();
-        getCommand("보상수령").setExecutor(new ReservationCommand());
+        getCommand("보상수령").setExecutor(new PreRewardCommand());
 
     }
 

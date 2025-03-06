@@ -12,11 +12,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.desp.preReward.database.CashRestoreRepository;
 import org.desp.preReward.database.ReservationRepository;
+import org.desp.preReward.dto.CashRestoreDto;
 import org.desp.preReward.dto.PlayerDto;
 import org.jetbrains.annotations.NotNull;
 
-public class ReservationCommand implements CommandExecutor {
+public class PreRewardCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s,
@@ -28,7 +30,7 @@ public class ReservationCommand implements CommandExecutor {
         }
         switch (strings[0]) {
             case "사전예약":
-                giveReward(player);
+                giveReservationReward(player);
                 return true;
             case "후원복구":
 
@@ -39,7 +41,7 @@ public class ReservationCommand implements CommandExecutor {
         return false;
     }
 
-    public void giveReward(Player player) {
+    public void giveReservationReward(Player player) {
         ReservationRepository repository = ReservationRepository.getInstance();
         Map<String, PlayerDto> allReservations = repository.getAllReservations();
 
@@ -51,6 +53,23 @@ public class ReservationCommand implements CommandExecutor {
             }
             sendReward(getReward(), player);
             repository.updateReservationData(allReservations.get(playerName));
+        }
+        else {
+            player.sendMessage("§c사전예약자가 아닙니다!");
+        }
+    }
+    public void giveCashRestoreReward(Player player) {
+        CashRestoreRepository repository = CashRestoreRepository.getInstance();
+        Map<String, CashRestoreDto> cashCache = repository.getCashCache();
+
+        String playerName = player.getName();
+        if (cashCache.containsKey(playerName)) {
+            if(!cashCache.get(playerName).getReceived().isEmpty()){
+                player.sendMessage("§c이미 보상을 수령하였습니다!");
+                return;
+            }
+            sendReward(getReward(), player);
+            repository.updateReservationData(cashCache.get(playerName));
         }
         else {
             player.sendMessage("§c사전예약자가 아닙니다!");
